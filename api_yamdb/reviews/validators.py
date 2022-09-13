@@ -19,10 +19,3 @@ def validate_year(value):
             f'{value} не может быть больше {now}!',
             params={'value': value, 'now': now},
         )
-
-
-def validate_rating(value):
-    if value not in range(0, 11):
-        raise ValidationError(
-            f'{value} не может быть оценкой! Оценка должна быть от 0 до 10!'
-        )

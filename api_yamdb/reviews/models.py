@@ -2,13 +2,13 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .validators import validate_category, validate_rating, validate_year
+from .validators import validate_category, validate_year
 
 User = get_user_model()
 
 # мне еще предстоит узнать, как написать кастомный класс для юзера
-class User:
-    pass
+# class User:
+#     pass
 
 
 class Category(models.Model):
@@ -52,8 +52,12 @@ class Title(models.Model):
         null=True,
         blank=True,
     )
-    description = models.TextField("Описание", max_length=255, null=True, blank=True)
-    genre = models.ManyToManyField(Genre, related_name="titles", verbose_name="Жанр")
+    description = models.TextField(
+        "Описание", max_length=255, null=True, blank=True
+    )
+    genre = models.ManyToManyField(
+        Genre, related_name="titles", verbose_name="Жанр"
+    )
 
     class Meta:
         verbose_name = "Произведение"
@@ -80,11 +84,13 @@ class Review(models.Model):
     rating = models.PositiveIntegerField(
         verbose_name='Оценка',
         validators=[
-            MinValueValidator(1, 'Нужна оценка от 1 до 10'),
-            MaxValueValidator(10, 'Нужна оценка от 1 до 10'),
+            MinValueValidator(1, 'Нужна оценка от 1 до 10!'),
+            MaxValueValidator(10, 'Нужна оценка от 1 до 10!'),
         ],
     )
-    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True, db_index=True)
+    pub_date = models.DateTimeField(
+        "Дата публикации", auto_now_add=True, db_index=True
+    )
 
     class Meta:
         verbose_name = "Отзыв"
@@ -118,7 +124,9 @@ class Comment(models.Model):
         related_name="comments",
         verbose_name="Автор",
     )
-    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True, db_index=True)
+    pub_date = models.DateTimeField(
+        "Дата публикации", auto_now_add=True, db_index=True
+    )
 
     class Meta:
         verbose_name = "Комментарий"
