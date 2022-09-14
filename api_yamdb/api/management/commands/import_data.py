@@ -1,0 +1,72 @@
+import csv
+import os
+import re
+
+from django.conf import settings
+from django.core.management.base import BaseCommand
+from django.db import connection
+
+TABLE_PREFIX = "reviews"
+MODELS_LIST = {
+    "genre.csv": [f"{TABLE_PREFIX}_genre", 0],
+    "category.csv": [f"{TABLE_PREFIX}_category", 0],
+    "comments.csv": [f"{TABLE_PREFIX}_comment", 1],
+    "review.csv": [f"{TABLE_PREFIX}_review", 1],
+    "titles.csv": [f"{TABLE_PREFIX}_title", 1],
+    "genre_title.csv": [f"{TABLE_PREFIX}_title_genre", 1],
+    # 'users.csv': [f'auth_user', User, 1],
+}
+PATH_TO_CSV = os.path.join(settings.BASE_DIR, "static", "data")
+
+
+class Command(BaseCommand):
+    help = 'Import data from csv files to DB'
+
+    def handle(self, *args, **options):
+        cursor = connection.cursor()
+        # Temporary disable foreign keys.
+        # Without it couldn't insert data in tables
+        cursor.execute("PRAGMA foreign_keys = OFF;")
+        files_csv_list = os.listdir(PATH_TO_CSV)
+        fld_titles_to_change = {"category": "category_id",
+                                "author": "author_id",
+                                "score": "rating"}
+        for file_name in files_csv_list:
+            if file_name in MODELS_LIST.keys():
+                tbl_title = MODELS_LIST[file_name][0]
+                header_in_query = MODELS_LIST[file_name][1]
+                file = os.path.join(PATH_TO_CSV, file_name)
+                with open(file, newline='', encoding='utf-8') as csvfile:
+                    csv_reader = csv.reader(csvfile, delimiter=',')
+                    row_num = 0
+                    for row in csv_reader:
+                        if row_num == 0:
+                            if header_in_query == 1:
+                                for k in fld_titles_to_change.keys():
+                                    if k in row:
+                                        cur_i = row.index(k)
+                                        row[cur_i] = fld_titles_to_change[k]
+                                sql_hdr = f"INSERT INTO `{tbl_title}` ({', '.join(row)})"
+                            else:
+                                sql_hdr = f"INSERT INTO `{tbl_title}`"
+                        else:
+                            vals = ""
+                            if len(row) == 1:
+                                # data with separator in content
+                                if row[0][0] == '"' and row[0][-1] == '"':
+                                    row[0] = row[0][1:-1]
+                                row = re.split(''',(?=(?:[^'"]|'[^']*'|"[^"]*")*$)''', row[0])
+                            for w in row:
+                                if w.isnumeric():
+                                    vals += f"{w}, "
+                                else:
+                                    w = w.replace("'", "%27")
+                                    vals += f"'{w}', "
+                            sql_fld_values = vals[0:-2]
+                            sql_body_final = f"{sql_hdr} VALUES ({sql_fld_values})"
+                            # print(sql_body_final)
+                            cursor.execute(sql_body_final)
+                        row_num += 1
+        # enable foreign keys
+        cursor.execute('PRAGMA foreign_keys = ON;')
+        self.stdout.write(self.style.SUCCESS('Импорт данных завершен!'))

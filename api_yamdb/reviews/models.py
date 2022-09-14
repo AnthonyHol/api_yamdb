@@ -6,8 +6,8 @@ from .validators import validate_category, validate_year, validate_rating
 User = get_user_model()
 
 # мне еще предстоит узнать, как написать кастомный класс для юзера
-class User:
-    pass
+# class User:
+#    pass
 
 
 class Category(models.Model):
