@@ -78,10 +78,10 @@ class Review(models.Model):
         verbose_name="Автор",
     )
     rating = models.PositiveIntegerField(
-        verbose_name='Оценка',
+        verbose_name="Оценка",
         validators=[
-            MinValueValidator(1, 'Нужна оценка от 1 до 10'),
-            MaxValueValidator(10, 'Нужна оценка от 1 до 10'),
+            MinValueValidator(1, "Нужна оценка от 1 до 10"),
+            MaxValueValidator(10, "Нужна оценка от 1 до 10"),
         ],
     )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True, db_index=True)

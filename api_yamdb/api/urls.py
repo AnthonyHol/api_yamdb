@@ -5,5 +5,5 @@ router = routers.DefaultRouter()
 
 
 urlpatterns = [
-    path('v1/', include(router.urls), name='v1'),
+    path("v1/", include(router.urls), name="v1"),
 ]
