@@ -22,7 +22,7 @@ def validate_year(value):
 
 
 def validate_username(value):
-    if re.search(r"^[a-zA-Z][a-zA-Z0-9-_\.]$", value) is None or value == "me":
+    if re.search(r"^[a-zA-Z0-9_-]{3,16}$", value) is None or value == "me":
         raise ValidationError(
             (f"Не допустимый username: <{value}>!"),
             params={"value": value},
