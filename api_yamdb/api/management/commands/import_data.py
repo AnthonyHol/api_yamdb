@@ -27,8 +27,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         cursor = connection.cursor()
-        # Temporary disable foreign keys.
-        # Without it couldn't insert data in tables
+        # Temporary making disable foreign keys.
+        # It allows insert data in tables.
         cursor.execute("PRAGMA foreign_keys = OFF;")
         files_csv_list = os.listdir(PATH_TO_CSV)
 
@@ -72,9 +72,8 @@ class Command(BaseCommand):
                             sql_body_final = (
                                 f"{sql_hdr} VALUES ({sql_fld_values})"
                                             )
-                            # print(sql_body_final)
                             cursor.execute(sql_body_final)
                         row_num += 1
-        # enable foreign keys
+        # Making enable foreign keys
         cursor.execute('PRAGMA foreign_keys = ON;')
         self.stdout.write(self.style.SUCCESS('Импорт данных завершен!'))
