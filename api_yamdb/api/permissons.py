@@ -7,7 +7,7 @@ class IsAdminOrReadOnly(BasePermission):
     чтение — для любого пользователя.
     """
 
-    def has_permission(self, request, view, obj):
+    def has_permission(self, request, view):
         return bool(
             request.method in SAFE_METHODS
             or request.user.is_admin
@@ -27,11 +27,15 @@ class IsAdmin(BasePermission):
     Ограничение прав доступа изменения контента только для админа.
     """
 
-    def has_permission(self, request, view, obj):
-        return bool(request.user and request.user.is_staff or request.user.is_admin)
+    def has_permission(self, request, view):
+        return bool(
+            request.user and request.user.is_staff or request.user.is_admin
+        )
 
     def has_object_permission(self, request, view, obj):
-        return bool(request.user and request.user.is_staff or request.user.is_admin)
+        return bool(
+            request.user and request.user.is_staff or request.user.is_admin
+        )
 
 
 class IsAuthorOrModerator(BasePermission):
@@ -41,7 +45,9 @@ class IsAuthorOrModerator(BasePermission):
     """
 
     def has_permission(self, request, view):
-        return bool(request.method in SAFE_METHODS or request.user.is_authenticated)
+        return bool(
+            request.method in SAFE_METHODS or request.user.is_authenticated
+        )
 
     def has_object_permission(self, request, view, obj):
         return bool(

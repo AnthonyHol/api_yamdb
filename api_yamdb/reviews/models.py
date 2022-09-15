@@ -1,7 +1,10 @@
-from django.contrib.auth import get_user_model
+import random
+
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from .validators import validate_category, validate_username, validate_year
 
@@ -29,7 +32,7 @@ class User(AbstractUser):
         "Роль", max_length=10, choices=ROLE_CHOICES, default=USER, blank=True
     )
     bio = models.TextField(
-        'Биография',
+        "Биография",
         blank=True,
     )
     confirmation_code = models.CharField(
@@ -58,6 +61,16 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+@receiver(post_save, sender=User)
+def post_save(instance, created, **kwargs):
+    if created:
+        confirmation_code = "".join(
+            random.sample(tuple(map(str, range(0, 10))), 4)
+        )
+        instance.confirmation_code = confirmation_code
+        instance.save()
 
 
 class Category(models.Model):

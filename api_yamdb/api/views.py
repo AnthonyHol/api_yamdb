@@ -1,14 +1,15 @@
+from django.core.mail import send_mail
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import User
 
 from .permissons import IsAdmin
-from .serializers import GetTokenSerializer, UsersSerializer
+from .serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -30,6 +31,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         methods=["GET", "PATCH"],
         detail=False,
         permission_classes=(IsAuthenticated,),
+        url_path="me",
     )
     def get_current_user_info(self, request):
         serializer = UsersSerializer(request.user)
@@ -46,6 +48,12 @@ class UsersViewSet(viewsets.ModelViewSet):
 class APIGetToken(APIView):
     """
     APIView для получения токена.
+
+    Запрос:
+    {
+        "username": имя пользователя(:obj:`string`),
+        "confirmation_code": код доступа пользователя(:obj:`string`).
+    }
     """
 
     def post(self, request):
@@ -68,3 +76,33 @@ class APIGetToken(APIView):
             {"confirmation_code": "Неверный код подтверждения!"},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class APISignUp(APIView):
+    """
+    APIView для получения кода доступа (его отправка на email).
+
+    Запрос:
+    {
+        "username": имя пользователя(:obj:`string`),
+        "email": электронная почта пользователя(:obj:`string`).
+    }
+    """
+
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        send_mail(
+            "Код для API",
+            (
+                f"Здравствуйте, {user.username}!\n"
+                f"Код доступа к API: {user.confirmation_code}"
+            ),
+            "support_api@mail.com",
+            [user.email],
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
