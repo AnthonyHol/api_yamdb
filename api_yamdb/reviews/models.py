@@ -1,14 +1,76 @@
-from django.contrib.auth import get_user_model
+import random
+
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-from .validators import validate_category, validate_year
+from .validators import validate_category, validate_username, validate_year
 
-User = get_user_model()
+USER = "user"
+ADMIN = "admin"
+MODERATOR = "moderator"
 
-# мне еще предстоит узнать, как написать кастомный класс для юзера
-# class User:
-#     pass
+ROLE_CHOICES = [(USER, "user"), (ADMIN, "admin"), (MODERATOR, "moderator")]
+
+
+class User(AbstractUser):
+    username = models.CharField(
+        max_length=16,
+        unique=True,
+        blank=False,
+        null=False,
+        validators=(validate_username,),
+    )
+    first_name = models.CharField("Имя", max_length=32, blank=True)
+    last_name = models.CharField("Фамилия", max_length=32, blank=True)
+    email = models.EmailField(
+        max_length=32, unique=True, blank=False, null=False
+    )
+    role = models.CharField(
+        "Роль", max_length=10, choices=ROLE_CHOICES, default=USER, blank=True
+    )
+    bio = models.TextField(
+        "Биография",
+        blank=True,
+    )
+    confirmation_code = models.CharField(
+        "Код подтверждения",
+        max_length=255,
+        null=True,
+        blank=False,
+    )
+
+    @property
+    def is_user(self):
+        return self.role == USER
+
+    @property
+    def is_admin(self):
+        return self.role == ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
+
+    class Meta:
+        ordering = ("username",)
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
+    def __str__(self):
+        return self.username
+
+
+@receiver(post_save, sender=User)
+def post_save(instance, created, **kwargs):
+    if created:
+        confirmation_code = "".join(
+            random.sample(tuple(map(str, range(0, 10))), 4)
+        )
+        instance.confirmation_code = confirmation_code
+        instance.save()
 
 
 class Category(models.Model):
@@ -81,11 +143,11 @@ class Review(models.Model):
         related_name="reviews",
         verbose_name="Автор",
     )
-    rating = models.PositiveIntegerField(
-        verbose_name='Оценка',
+    score = models.PositiveIntegerField(
+        verbose_name="Оценка",
         validators=[
-            MinValueValidator(1, 'Нужна оценка от 1 до 10!'),
-            MaxValueValidator(10, 'Нужна оценка от 1 до 10!'),
+            MinValueValidator(1, "Нужна оценка от 1 до 10!"),
+            MaxValueValidator(10, "Нужна оценка от 1 до 10!"),
         ],
     )
     pub_date = models.DateTimeField(
