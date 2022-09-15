@@ -20,7 +20,7 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'rating', 'pub_date')
+    list_display = ('pk', 'text', 'score', 'pub_date')
     search_fields = ('text',)
 
 @admin.register(Title)

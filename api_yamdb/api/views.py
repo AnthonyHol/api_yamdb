@@ -1,15 +1,17 @@
 from django.core.mail import send_mail
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import User
+from reviews.models import User, Category, Comment, Review, Genre, Title, Review
 
 from api.permissons import IsAdmin, IsAdminOrReadOnly
 from api.serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer, CategorySerializer, TitleSerializer
+
+from rest_framework.pagination import PageNumberPagination
 
 
 class UsersViewSet(viewsets.ModelViewSet):
