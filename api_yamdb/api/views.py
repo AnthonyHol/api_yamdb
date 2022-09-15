@@ -8,8 +8,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import User
 
-from .permissons import IsAdmin
-from .serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer
+from api.permissons import IsAdmin, IsAdminOrReadOnly
+from .serializers import (GetTokenSerializer, SignUpSerializer, 
+                        UsersSerializer, CategorySerializer, TitleSerializer
+                        )
 
 
 class UsersViewSet(viewsets.ModelViewSet):
