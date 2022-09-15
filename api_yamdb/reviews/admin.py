@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (Genre, Category, Comment, 
-                    Review, Title)
+                    Review, Title, User)
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
@@ -27,6 +27,11 @@ class ReviewAdmin(admin.ModelAdmin):
 class TitleAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'year', 'category', 'description')
     search_fields = ('name',)
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ("username", "email", "role")
+    empty_value_display = "-пусто-"    
 """
 @admin.register(TitleGenre)
 class TitleGenreAdmin(admin.ModelAdmin):
