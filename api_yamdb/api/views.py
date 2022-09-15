@@ -9,9 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import User
 
 from api.permissons import IsAdmin, IsAdminOrReadOnly
-from .serializers import (GetTokenSerializer, SignUpSerializer, 
-                        UsersSerializer, CategorySerializer, TitleSerializer
-                        )
+from api.serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer, CategorySerializer, TitleSerializer
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -108,3 +106,27 @@ class APISignUp(APIView):
             [user.email],
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = PageNumberPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = PageNumberPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = PageNumberPagination
+
+    def perform_create(self, serializer):
+        serializer.save()
