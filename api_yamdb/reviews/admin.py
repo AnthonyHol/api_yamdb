@@ -22,14 +22,13 @@ class CommentAdmin(admin.ModelAdmin):
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('pk', 'text', 'score', 'pub_date')
     search_fields = ('text',)
-"""
 
-#@admin.register(Title)
+
+@admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'year', 'category', 'description')
     search_fields = ('name',)
 
-"""
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ("username", "email", "role")

@@ -9,9 +9,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import User, Category, Comment, Review, Genre, Title, Review
 
 from api.permissons import IsAdmin, IsAdminOrReadOnly
-from api.serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer, CategorySerializer, TitleSerializer
+from api.serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer, CategorySerializer, TitleSerializer, ReviewSerializer
 
 from rest_framework.pagination import PageNumberPagination
+from django.shortcuts import get_object_or_404
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -129,6 +130,21 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = PageNumberPagination
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+            title_id = self.kwargs.get("title_id")
+            review = get_object_or_404(Review, title_id=title_id)
+            return review.objects.all()
 
     def perform_create(self, serializer):
         serializer.save()
