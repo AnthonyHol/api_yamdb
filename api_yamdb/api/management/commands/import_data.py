@@ -14,7 +14,6 @@ FILES_TBLS_LIST = {
     "review.csv": [f"{TABLE_PREFIX}_review", 1],
     "titles.csv": [f"{TABLE_PREFIX}_title", 1],
     "genre_title.csv": [f"{TABLE_PREFIX}_title_genre", 1],
-    # 'users.csv': [f'auth_user', User, 1],
 }
 PATH_TO_CSV = os.path.join(settings.BASE_DIR, "static", "data")
 FLD_TITLES_TO_CHANGE = {"category": "category_id",
