@@ -10,8 +10,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Title, User
 
 from .permissons import IsAdmin, IsAdminOrReadOnly
-from .serializers import (CategorySerializer, GetTokenSerializer,
-                          SignUpSerializer, TitleSerializer, UsersSerializer)
+from .serializers import (AdminsSerializer, CategorySerializer,
+                          GetTokenSerializer, SignUpSerializer,
+                          TitleSerializer, UsersSerializer)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
