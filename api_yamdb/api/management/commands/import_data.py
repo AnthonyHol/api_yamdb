@@ -14,6 +14,7 @@ FILES_TBLS_LIST = {
     "review.csv": [f"{TABLE_PREFIX}_review", 1],
     "titles.csv": [f"{TABLE_PREFIX}_title", 1],
     "genre_title.csv": [f"{TABLE_PREFIX}_title_genre", 1],
+    "users.csv": [f"{TABLE_PREFIX}_user", 1],
 }
 PATH_TO_CSV = os.path.join(settings.BASE_DIR, "static", "data")
 FLD_TITLES_TO_CHANGE = {"category": "category_id",
@@ -46,6 +47,12 @@ class Command(BaseCommand):
                                     if k in row:
                                         cur_i = row.index(k)
                                         row[cur_i] = FLD_TITLES_TO_CHANGE[k]
+                                if "user" in file_name:
+                                    row.append('password')
+                                    row.append('is_superuser')
+                                    row.append('is_staff')
+                                    row.append('is_active')
+                                    row.append('date_joined')
                                 sql_hdr = (
                                     f"INSERT INTO `{tbl_t}` ({', '.join(row)})"
                                     )
@@ -67,6 +74,12 @@ class Command(BaseCommand):
                                 else:
                                     w = w.replace("'", "%27")
                                     vals += f"'{w}', "
+                            if "user" in file_name:
+                                vals += "'0', "
+                                vals += "'no', "
+                                vals += "'no', "
+                                vals += "'yes', "
+                                vals += "'2022-09-16T21:08:21.567Z', "
                             sql_fld_values = vals[0:-2]
                             sql_body_final = (
                                 f"{sql_hdr} VALUES ({sql_fld_values})"
