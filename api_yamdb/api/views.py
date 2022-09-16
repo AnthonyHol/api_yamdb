@@ -9,7 +9,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import User
 
 from .permissons import IsAdmin
-from .serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer
+from .serializers import (
+    AdminsSerializer,
+    GetTokenSerializer,
+    SignUpSerializer,
+    UsersSerializer,
+)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -18,7 +23,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     """
 
     queryset = User.objects.all()
-    serializer_class = UsersSerializer
+    serializer_class = AdminsSerializer
     permission_classes = (
         IsAuthenticated,
         IsAdmin,
@@ -34,11 +39,19 @@ class UsersViewSet(viewsets.ModelViewSet):
         url_path="me",
     )
     def get_current_user_info(self, request):
-        serializer = UsersSerializer(request.user)
+        serializer = AdminsSerializer(request.user)
         if request.method == "PATCH":
-            serializer = UsersSerializer(
+            serializer = AdminsSerializer(
                 request.user, data=request.data, partial=True
             )
+            if request.user.is_admin:
+                serializer = AdminsSerializer(
+                    request.user, data=request.data, partial=True
+                )
+            else:
+                serializer = UsersSerializer(
+                    request.user, data=request.data, partial=True
+                )
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -53,6 +66,11 @@ class APIGetToken(APIView):
     {
         "username": имя пользователя(:obj:`string`),
         "confirmation_code": код доступа пользователя(:obj:`string`).
+    }
+
+    Ответ:
+    {
+        "token": токен(:obj:`string`).
     }
     """
 
