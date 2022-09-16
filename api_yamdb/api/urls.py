@@ -1,16 +1,21 @@
+#from macpath import basename
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
-from api.views import CategoryViewSet, GenreViewSet, TitleViewSet, ReviewViewSet
+from rest_framework import routers
+from api.views import CategoryViewSet, GenreViewSet, TitleViewSet, ReviewViewSet, CommentViewSet
 
 from .views import APIGetToken, APISignUp, UsersViewSet
 
-router = SimpleRouter()
+# router = SimpleRouter()
+router = routers.DefaultRouter()
 
-router.register("users", UsersViewSet, basename="users")
+#router.register("users", UsersViewSet, basename="users")
+router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments', CommentViewSet, basename='comments')
+router.register(r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='reviews')
 router.register('titles', TitleViewSet)
 router.register('categories', CategoryViewSet)
 router.register('genres', GenreViewSet)
-router.register(r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet)
+
 
 urlpatterns = [
     path("v1/", include(router.urls)),

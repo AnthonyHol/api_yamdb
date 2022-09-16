@@ -19,7 +19,7 @@ FILES_TBLS_LIST = {
 PATH_TO_CSV = os.path.join(settings.BASE_DIR, "static", "data")
 FLD_TITLES_TO_CHANGE = {"category": "category_id",
                         "author": "author_id",
-                        "score": "rating"}
+                        "score": "score"}
 
 
 class Command(BaseCommand):

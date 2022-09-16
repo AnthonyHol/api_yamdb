@@ -43,16 +43,11 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ("name", "slug")
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Review
-        fields = ("title", "text", "pub_date")
-
-
 class TitleSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        slug_field="slug", many=True, queryset=Category.objects.all()
-    )
+    #category = serializers.SlugRelatedField(
+    #    slug_field="slug", many=True, queryset=Category.objects.all()
+    #)
+    category = serializers.StringRelatedField(read_only=True)
     genre = serializers.SlugRelatedField(
         slug_field="slug", many=True, queryset=Genre.objects.all()
     )
@@ -66,3 +61,28 @@ class TitleSerializer(serializers.ModelSerializer):
         if value > current_year:
             raise serializers.ValidationError("Год указан неправильно")
         return value
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    title = serializers.StringRelatedField(read_only=True)
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='slug'
+    )
+    
+    class Meta:
+        model = Review
+        fields = ("id", "title", "author", "text", "score", "pub_date")
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    # review = serializers.StringRelatedField(read_only=True)
+    author = serializers.StringRelatedField(read_only=True)
+    #author = serializers.SlugRelatedField(
+    #    read_only=True,
+    #    slug_field='slug'
+    #)
+    
+    class Meta:
+        model = Comment
+        fields = ("text", "author", "pub_date")

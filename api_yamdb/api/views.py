@@ -6,10 +6,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import User, Category, Comment, Review, Genre, Title, Review
+from reviews.models import User, Category, Comment, Review, Genre, Title
 
 from api.permissons import IsAdmin, IsAdminOrReadOnly
-from api.serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer, CategorySerializer, TitleSerializer, ReviewSerializer
+from api.serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer, CategorySerializer, TitleSerializer, ReviewSerializer, CommentSerializer
 
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
@@ -136,15 +136,33 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
-            title_id = self.kwargs.get("title_id")
-            review = get_object_or_404(Review, title_id=title_id)
-            return review.objects.all()
+        title_id = self.kwargs.get("title_id")
+        if not Review.objects.filter(title_id=title_id).exists():
+            return status.HTTP_404_NOT_FOUND
+        return Review.objects.filter(title_id=title_id)
 
     def perform_create(self, serializer):
         serializer.save()
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        title_id = self.kwargs.get("title_id")
+        review_id = self.kwargs.get("review_id")
+        #get_object_or_404(Review, title_id=title_id, id=review_id)
+        #get_object_or_404(Comment, review_id=review_id)
+        if not Review.objects.filter(title_id=title_id, id=review_id).exists() and not Comment.objects.filter(review_id=review_id).exists():
+            return status.HTTP_404_NOT_FOUND
+        return Comment.objects.filter(review=review_id)
+
+    def perform_create(self, serializer):
+        serializer.save()        
