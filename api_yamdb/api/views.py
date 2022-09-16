@@ -1,5 +1,3 @@
-from functools import partial
-import re
 from django.core.mail import send_mail
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -12,10 +10,10 @@ from reviews.models import User
 
 from .permissons import IsAdmin
 from .serializers import (
+    AdminsSerializer,
     GetTokenSerializer,
     SignUpSerializer,
     UsersSerializer,
-    AdminsSerializer,
 )
 
 
