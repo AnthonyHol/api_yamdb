@@ -1,15 +1,50 @@
 from django.core.mail import send_mail
-from rest_framework import status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import User
+from reviews.models import Category, Genre, Title, User
 
-from .permissons import IsAdmin
-from .serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer
+from .permissons import IsAdmin, IsAdminOrReadOnly
+from .serializers import (CategorySerializer, GetTokenSerializer,
+                          SignUpSerializer, TitleSerializer, UsersSerializer)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для работы с категориями.
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = PageNumberPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для работы с жанрами.
+    """
+    queryset = Genre.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = PageNumberPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для работы с произведениями.
+    """
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = PageNumberPagination
+    
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 class UsersViewSet(viewsets.ModelViewSet):
