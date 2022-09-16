@@ -8,4 +8,21 @@ class UserAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
-admin.site.register(User, UserAdmin, Genre, Category, Title)
+class GenreAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug")
+    empty_value_display = "-пусто-"
+
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug")
+    empty_value_display = "-пусто-"
+
+
+class TitleAdmin(admin.ModelAdmin):
+    list_display = ("name", "genre", "category")
+    empty_value_display = "-пусто-"
+
+admin.site.register(User, UserAdmin)
+admin.site.register(Genre, GenreAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Title, TitleAdmin)
