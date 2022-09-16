@@ -4,7 +4,7 @@ from rest_framework import serializers
 from reviews.models import Category, Genre, Title, User
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class AdminsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
@@ -15,6 +15,11 @@ class UsersSerializer(serializers.ModelSerializer):
             "role",
             "bio",
         )
+
+
+class UsersSerializer(serializers.ModelSerializer):
+    class Meta(AdminsSerializer.Meta):
+        read_only_fields = ("role",)
 
 
 class GetTokenSerializer(serializers.ModelSerializer):
@@ -29,7 +34,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
 class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("email", "username", "confirmation_code")
+        fields = ("email", "username")
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -61,4 +66,3 @@ class TitleSerializer(serializers.ModelSerializer):
         if value > current_year:
             raise serializers.ValidationError("Год указан неправильно")
         return value
-
