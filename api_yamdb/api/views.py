@@ -12,8 +12,8 @@ from reviews.models import Category, Genre, Title, User
 
 from .permissons import IsAdmin, IsAdminOrReadOnly
 from .serializers import (AdminsSerializer, CategorySerializer,
-                          GetTokenSerializer, SignUpSerializer,
-                          TitleSerializer, UsersSerializer)
+                          GenreSerializer, GetTokenSerializer,
+                          SignUpSerializer, TitleSerializer, UsersSerializer)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -33,7 +33,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     ViewSet для работы с жанрами.
     """
     queryset = Genre.objects.all()
-    serializer_class = CategorySerializer
+    serializer_class = GenreSerializer
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (SearchFilter, )
