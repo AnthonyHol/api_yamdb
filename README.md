@@ -7,7 +7,7 @@ git clone https://github.com/AnthonyHol/api_yamdb.git
 ```
 
 ```
-cd kittygram2plus
+cd api_yamdb
 ```
 
 Cоздать и активировать виртуальное окружение:
