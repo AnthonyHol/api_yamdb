@@ -2,10 +2,10 @@ from api.permissons import IsAdmin, IsAdminOrReadOnly
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GetTokenSerializer, ReviewSerializer,
                              SignUpSerializer, TitleSerializer,
-                             UsersSerializer)
+                             UsersSerializer, AdminsSerializer)
 from django.core.exceptions import SuspiciousOperation
 from django.core.mail import send_mail
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.filters import SearchFilter
