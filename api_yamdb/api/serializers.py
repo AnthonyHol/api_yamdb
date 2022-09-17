@@ -1,10 +1,10 @@
 import datetime as dt
 
 from rest_framework import serializers
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import User
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class AdminsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
@@ -15,6 +15,11 @@ class UsersSerializer(serializers.ModelSerializer):
             "role",
             "bio",
         )
+
+
+class UsersSerializer(serializers.ModelSerializer):
+    class Meta(AdminsSerializer.Meta):
+        read_only_fields = ("role",)
 
 
 class GetTokenSerializer(serializers.ModelSerializer):

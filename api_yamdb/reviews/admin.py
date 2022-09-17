@@ -1,11 +1,11 @@
 from django.contrib import admin
 
-# Register your models here.
-from .models import Category, Genre, Title, Review, Comment, User
+from .models import User
 
-admin.site.register(Genre)
-admin.site.register(Category)
-admin.site.register(Title)
-admin.site.register(Review)
-admin.site.register(Comment)
-admin.site.register(User)
+
+class UserAdmin(admin.ModelAdmin):
+    list_display = ("username", "email", "role")
+    empty_value_display = "-пусто-"
+
+
+admin.site.register(User, UserAdmin)
