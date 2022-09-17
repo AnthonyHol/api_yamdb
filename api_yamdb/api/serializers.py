@@ -28,6 +28,20 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
         fields = "__all__"
 
+
+class TitleCreateSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all(),
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Genre.objects.all(), many=True
+    )
+
+    class Meta:
+        model = Title
+        fields = "__all__"
+
+
     def validate_year(self, value):
         current_year = dt.date.today().year
         if value > current_year:
