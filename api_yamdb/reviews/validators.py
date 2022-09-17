@@ -5,7 +5,7 @@ from django.utils import timezone
 
 
 def validate_category(value):
-    if re.search(r"^[a-zA-Z][a-zA-Z0-9-_\.]$", value) is None:
+    if re.search(r"^[a-zA-Z0-9_-]{3,256}$", value) is None:
         raise ValidationError(
             (f"Не допустимые символы <{value}> в названии Категория!"),
             params={"value": value},
