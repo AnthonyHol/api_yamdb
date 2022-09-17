@@ -1,18 +1,21 @@
+from api.permissons import IsAdmin, IsAdminOrReadOnly
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GetTokenSerializer, ReviewSerializer,
+                             SignUpSerializer, TitleSerializer,
+                             UsersSerializer)
+from django.core.exceptions import SuspiciousOperation
 from django.core.mail import send_mail
-from rest_framework import status, viewsets, permissions
+from django.shortcuts import get_object_or_404
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import User, Category, Comment, Review, Genre, Title
-
-from api.permissons import IsAdmin, IsAdminOrReadOnly
-from api.serializers import GetTokenSerializer, SignUpSerializer, UsersSerializer, CategorySerializer, TitleSerializer, ReviewSerializer, CommentSerializer
-
-from rest_framework.pagination import PageNumberPagination
-from django.shortcuts import get_object_or_404
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -31,10 +34,10 @@ class UsersViewSet(viewsets.ModelViewSet):
     search_fields = ("username",)
 
     @action(
-        methods=["GET", "PATCH"],
-        detail=False,
-        permission_classes=(IsAuthenticated,),
-        url_path="me",
+            methods=["GET", "PATCH"],
+            detail=False,
+            permission_classes=(IsAuthenticated,),
+            url_path="me",
     )
     def get_current_user_info(self, request):
         serializer = UsersSerializer(request.user)
@@ -136,33 +139,203 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    Вьюсет для объекта обзора.
+    Просмотр, создание,  редактирование, удаление.
+    """
+
     serializer_class = ReviewSerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = PageNumberPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         title_id = self.kwargs.get("title_id")
+        pk = self.kwargs.get("pk")
         if not Review.objects.filter(title_id=title_id).exists():
-            return status.HTTP_404_NOT_FOUND
+            raise NotFound(
+                    detail="Произведение не найдено",
+                    code=404)
+        if pk and not Review.objects.filter(id=pk).exists():
+            raise NotFound(
+                    detail="Отзыв не найден",
+                    code=404)
         return Review.objects.filter(title_id=title_id)
 
     def perform_create(self, serializer):
-        serializer.save()
+        title_id = self.request.data.get("title_id")
+        text = self.request.data.get("text")
+        score = self.request.data.get("score")
+        token = GetTokenSerializer(data=self.request.data)
+        token.is_valid(raise_exception=True)
+        if title_id is not None and text is not None and score is not None:
+            if not Title.objects.get(title_id=title_id).exists():
+                raise ParseError(
+                    detail="Не найдено произведение!",
+                    code=404)
+            if not title_id.isnumeric():
+                raise ParseError(
+                    detail="Поле title_id должно быть числовым!",
+                    code=400)
+            if not score.isnumeric():
+                raise ParseError(
+                    detail="Поле рейтинг должно быть цифровым!",
+                    code=400)
+            if 0 > score > 10:
+                raise ParseError(
+                    detail="Рейтинг должен лежать в диапазоне 0-10!",
+                    code=400)
+            serializer.save(
+                    title_id=title_id,
+                    text=text,
+                    score=score,
+                    author=self.request.user)
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            raise ParseError(
+                    detail="Отсутствует одно из обязательных полей!",
+                    code=400)
+
+    def partial_update(self, request, title_id, review_id):
+        title = get_object_or_404(Title, id=title_id)
+        review = get_object_or_404(Review, title=title_id, id=review_id)
+        cur_user = request.user
+        cur_user_group = cur_user.groups()
+        token = GetTokenSerializer(data=request.data)
+        token.is_valid(raise_exception=True)
+        review_author = review.author
+        if 'user' in cur_user_group and cur_user != review_author:
+            return Response("У вас нет полномочий "
+                            "для редактирования обзора",
+                            status=status.HTTP_403_FORBIDDEN)
+        serializer = self.serializer_class(
+                    review,
+                    data=self.request.data,
+                    partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, title_id, review_id):
+        title = get_object_or_404(Title, id=title_id)
+        review = get_object_or_404(Review, id=review_id, title=title_id)
+        cur_user = request.user
+        cur_user_group = cur_user.groups()
+        review_author = review.author
+        token = GetTokenSerializer(data=request.data)
+        token.is_valid(raise_exception=True)
+        if 'user' in cur_user_group and cur_user != review_author:
+            return Response("У вас нет полномочий "
+                            "для удаления обзора",
+                            status=status.HTTP_403_FORBIDDEN)
+        else:
+            review.delete()
+            return Response("Обзор удален",
+                            status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """
+    Вьюсет для объекта комментарий.
+    Просмотр, создание,  редактирование, удаление.
+    """
     serializer_class = CommentSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
         title_id = self.kwargs.get("title_id")
         review_id = self.kwargs.get("review_id")
-        #get_object_or_404(Review, title_id=title_id, id=review_id)
-        #get_object_or_404(Comment, review_id=review_id)
-        if not Review.objects.filter(title_id=title_id, id=review_id).exists() and not Comment.objects.filter(review_id=review_id).exists():
-            return status.HTTP_404_NOT_FOUND
+        comment_id = self.kwargs.get("pk")
+        if not Review.objects.filter(id=review_id).exists():
+            raise NotFound(
+                    detail="Не найден отзыв",
+                    code=404)
+        if not Title.objects.filter(id=title_id).exists():
+            raise NotFound(
+                    detail="Не найдено произведение",
+                    code=404)
+        if comment_id and not Comment.objects.filter(id=comment_id).exists():
+            raise NotFound(
+                    detail="Комментарий не найден",
+                    code=404)
         return Comment.objects.filter(review=review_id)
 
     def perform_create(self, serializer):
-        serializer.save()        
+        title_id = self.request.data.get("title_id")
+        review_id = self.request.data.get("review_id")
+        text = self.request.data.get("text")
+        token = GetTokenSerializer(data=self.request.data)
+        token.is_valid(raise_exception=True)
+        if title_id is not None:
+            if not Title.objects.get(title_id=title_id).exists():
+                raise ParseError(
+                    detail="Не найдено произведение!",
+                    code=404)
+            if not Review.objects.get(title_id=title_id,
+                                      review_id=review_id).exists():
+                raise ParseError(
+                    detail="Не найден обзор!",
+                    code=404)
+            if not title_id.isnumeric():
+                raise ParseError(
+                    detail="Поле title_id должно быть числовым!",
+                    code=400)
+            if not review_id.isnumeric():
+                raise ParseError(
+                    detail="Поле review_id должно быть числовым!",
+                    code=400)
+            serializer.save(
+                    review_id=review_id,
+                    text=text,
+                    author=self.request.user)
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            raise ParseError(
+                    detail="Отсутствует одно из обязательных полей!",
+                    code=400)
+
+    def partial_update(self, request, title_id, review_id, comment_id):
+        title = get_object_or_404(Title, id=title_id)
+        review = get_object_or_404(Review, title=title_id, id=review_id)
+        comment = get_object_or_404(Comment,
+                                    review_id=review_id,
+                                    id=comment_id)
+        cur_user = request.user
+        cur_user_group = cur_user.groups()
+        token = GetTokenSerializer(data=request.data)
+        token.is_valid(raise_exception=True)
+        comment_author = comment.author
+        if 'user' in cur_user_group and cur_user != comment_author:
+            return Response("У вас нет полномочий "
+                            "для редактирования комментария",
+                            status=status.HTTP_403_FORBIDDEN)
+        serializer = self.serializer_class(
+                    comment,
+                    data=self.request.data,
+                    partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, title_id, review_id, comment_id):
+        title = get_object_or_404(Title, id=title_id)
+        rewiew = get_object_or_404(Review, id=review_id, title=title_id)
+        comment = get_object_or_404(Comment, id=comment_id)
+        cur_user = request.user
+        cur_user_group = cur_user.groups()
+        comment_author = comment.author
+        token = GetTokenSerializer(data=request.data)
+        token.is_valid(raise_exception=True)
+        if 'user' in cur_user_group and cur_user != comment_author:
+            return Response("У вас нет полномочий "
+                            "для удаления комментария",
+                            status=status.HTTP_403_FORBIDDEN)
+        else:
+            comment.delete()
+            return Response("Комментарий удален",
+                            status=status.HTTP_204_NO_CONTENT)
