@@ -4,9 +4,24 @@ from rest_framework.routers import SimpleRouter
 
 from .views import APIGetToken, APISignUp, UsersViewSet
 
-router = SimpleRouter()
+from api.views import (CategoryViewSet, CommentViewSet, GenreViewSet,
+                       ReviewViewSet, TitleViewSet)
+
+#router = SimpleRouter()
+router = routers.DefaultRouter()
 
 router.register("users", UsersViewSet, basename="users")
+
+router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments', 
+                CommentViewSet, basename='comments')
+router.register(r'titles/(?P<title_id>\d+)/reviews', 
+                ReviewViewSet, basename='reviews')
+router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)',
+                ReviewViewSet, basename='review-detail')
+router.register('titles', TitleViewSet)
+router.register('categories', CategoryViewSet)
+router.register('genres', GenreViewSet)
+
 
 urlpatterns = [
     path("v1/", include(router.urls), name="v1"),
