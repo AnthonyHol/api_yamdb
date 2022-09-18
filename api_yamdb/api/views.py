@@ -1,4 +1,5 @@
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -12,7 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 from .filters import TitleFilter
-from .permissons import IsAdmin, IsAdminOrReadOnly
+from .permissons import IsAdmin, IsAdminOrReadOnly, IsAuthorOrModerator
 from .serializers import (
     AdminsSerializer,
     CategorySerializer,
@@ -177,7 +178,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     ViewSet для работы с произведениями.
     """
 
-    queryset = Title.objects.all()
+    queryset = queryset = Title.objects.annotate(
+        rating=Avg("reviews__score")
+    ).all()
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     pagination_class = PageNumberPagination
@@ -197,7 +200,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthorOrModerator,)
 
     def get_queryset(self):
         title_id = self.kwargs.get("title_id")
@@ -221,7 +224,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 detail="Нельзя добавить больше одного отзыва!", code=400
             )
         serializer.save(
-            title_id=title_id, text=text, score=score, author=self.request.user
+            title_id=title_id,
+            text=text,
+            score=score,
+            author=self.request.user,
         )
         return Response(status=status.HTTP_201_CREATED)
 
