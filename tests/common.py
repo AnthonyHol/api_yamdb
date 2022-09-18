@@ -83,9 +83,7 @@ def create_titles(admin_client):
 def create_reviews(admin_client, admin):
     def create_review(uclient, title_id, text, score):
         data = {"text": text, "score": score}
-        response = uclient.post(
-            f"/api/v1/titles/{title_id}/reviews/", data=data
-        )
+        response = uclient.post(f"/api/v1/titles/{title_id}/reviews/", data=data)
         return response.json()["id"]
 
     titles, _, _ = create_titles(admin_client)
@@ -111,9 +109,7 @@ def create_reviews(admin_client, admin):
     )
     result.append(
         {
-            "id": create_review(
-                client_moderator, titles[0]["id"], "qwerty321", 4
-            ),
+            "id": create_review(client_moderator, titles[0]["id"], "qwerty321", 4),
             "author": moderator.username,
             "text": "qwerty321",
             "score": 4,

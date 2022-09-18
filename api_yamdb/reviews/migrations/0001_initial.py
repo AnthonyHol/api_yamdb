@@ -30,7 +30,10 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("password", models.CharField(max_length=128, verbose_name="password")),
+                (
+                    "password",
+                    models.CharField(max_length=128, verbose_name="password"),
+                ),
                 (
                     "last_login",
                     models.DateTimeField(
@@ -64,7 +67,8 @@ class Migration(migrations.Migration):
                 (
                     "date_joined",
                     models.DateTimeField(
-                        default=django.utils.timezone.now, verbose_name="date joined"
+                        default=django.utils.timezone.now,
+                        verbose_name="date joined",
                     ),
                 ),
                 (
@@ -77,11 +81,15 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "first_name",
-                    models.CharField(blank=True, max_length=32, verbose_name="Имя"),
+                    models.CharField(
+                        blank=True, max_length=32, verbose_name="Имя"
+                    ),
                 ),
                 (
                     "last_name",
-                    models.CharField(blank=True, max_length=32, verbose_name="Фамилия"),
+                    models.CharField(
+                        blank=True, max_length=32, verbose_name="Фамилия"
+                    ),
                 ),
                 ("email", models.EmailField(max_length=32, unique=True)),
                 (
@@ -101,7 +109,9 @@ class Migration(migrations.Migration):
                 (
                     "confirmation_code",
                     models.CharField(
-                        max_length=255, null=True, verbose_name="Код подтверждения"
+                        max_length=255,
+                        null=True,
+                        verbose_name="Код подтверждения",
                     ),
                 ),
                 (
@@ -148,12 +158,14 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("name", models.CharField(max_length=256, verbose_name="Категория")),
+                (
+                    "name",
+                    models.CharField(max_length=256, verbose_name="Категория"),
+                ),
                 (
                     "slug",
                     models.SlugField(
                         unique=True,
-                        validators=[reviews.validators.validate_category],
                         verbose_name="Slug категории",
                     ),
                 ),
@@ -177,9 +189,14 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(max_length=200, verbose_name="Название жанра"),
+                    models.CharField(
+                        max_length=200, verbose_name="Название жанра"
+                    ),
                 ),
-                ("slug", models.SlugField(unique=True, verbose_name="Slug жанра")),
+                (
+                    "slug",
+                    models.SlugField(unique=True, verbose_name="Slug жанра"),
+                ),
             ],
             options={
                 "verbose_name": "Жанр",
@@ -214,7 +231,10 @@ class Migration(migrations.Migration):
                 (
                     "description",
                     models.TextField(
-                        blank=True, max_length=255, null=True, verbose_name="Описание"
+                        blank=True,
+                        max_length=255,
+                        null=True,
+                        verbose_name="Описание",
                     ),
                 ),
                 (
@@ -231,7 +251,9 @@ class Migration(migrations.Migration):
                 (
                     "genre",
                     models.ManyToManyField(
-                        related_name="titles", to="reviews.Genre", verbose_name="Жанр"
+                        related_name="titles",
+                        to="reviews.Genre",
+                        verbose_name="Жанр",
                     ),
                 ),
             ],
@@ -270,7 +292,9 @@ class Migration(migrations.Migration):
                 (
                     "pub_date",
                     models.DateTimeField(
-                        auto_now_add=True, db_index=True, verbose_name="Дата публикации"
+                        auto_now_add=True,
+                        db_index=True,
+                        verbose_name="Дата публикации",
                     ),
                 ),
                 (
@@ -312,12 +336,16 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "text",
-                    models.CharField(max_length=200, verbose_name="Текст комментария"),
+                    models.CharField(
+                        max_length=200, verbose_name="Текст комментария"
+                    ),
                 ),
                 (
                     "pub_date",
                     models.DateTimeField(
-                        auto_now_add=True, db_index=True, verbose_name="Дата публикации"
+                        auto_now_add=True,
+                        db_index=True,
+                        verbose_name="Дата публикации",
                     ),
                 ),
                 (

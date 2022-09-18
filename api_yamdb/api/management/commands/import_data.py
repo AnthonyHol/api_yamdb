@@ -17,13 +17,15 @@ FILES_TBLS_LIST = {
     "users.csv": [f"{TABLE_PREFIX}_user", 1],
 }
 PATH_TO_CSV = os.path.join(settings.BASE_DIR, "static", "data")
-FLD_TITLES_TO_CHANGE = {"category": "category_id",
-                        "author": "author_id",
-                        "score": "score"}
+FLD_TITLES_TO_CHANGE = {
+    "category": "category_id",
+    "author": "author_id",
+    "score": "score",
+}
 
 
 class Command(BaseCommand):
-    help = 'Import data from csv files to DB'
+    help = "Import data from csv files to DB"
 
     def handle(self, *args, **options):
         cursor = connection.cursor()
@@ -37,8 +39,8 @@ class Command(BaseCommand):
                 tbl_t = FILES_TBLS_LIST[file_name][0]
                 header_in_query = FILES_TBLS_LIST[file_name][1]
                 file = os.path.join(PATH_TO_CSV, file_name)
-                with open(file, newline='', encoding='utf-8') as csvfile:
-                    csv_reader = csv.reader(csvfile, delimiter=',')
+                with open(file, newline="", encoding="utf-8") as csvfile:
+                    csv_reader = csv.reader(csvfile, delimiter=",")
                     row_num = 0
                     for row in csv_reader:
                         if row_num == 0:
@@ -48,14 +50,14 @@ class Command(BaseCommand):
                                         cur_i = row.index(k)
                                         row[cur_i] = FLD_TITLES_TO_CHANGE[k]
                                 if "user" in file_name:
-                                    row.append('password')
-                                    row.append('is_superuser')
-                                    row.append('is_staff')
-                                    row.append('is_active')
-                                    row.append('date_joined')
+                                    row.append("password")
+                                    row.append("is_superuser")
+                                    row.append("is_staff")
+                                    row.append("is_active")
+                                    row.append("date_joined")
                                 sql_hdr = (
                                     f"INSERT INTO `{tbl_t}` ({', '.join(row)})"
-                                    )
+                                )
                             else:
                                 sql_hdr = f"INSERT INTO `{tbl_t}`"
                         else:
@@ -64,10 +66,11 @@ class Command(BaseCommand):
                                 # data with separator in content
                                 if row[0][0] == '"' and row[0][-1] == '"':
                                     row[0] = row[0][1:-1]
-                                row = (
-                                    re.split(''',
-                                    (?=(?:[^'"]|'[^']*'|"[^"]*")*$)''', row[0])
-                                    )
+                                row = re.split(
+                                    """,
+                                    (?=(?:[^'"]|'[^']*'|"[^"]*")*$)""",
+                                    row[0],
+                                )
                             for w in row:
                                 if w.isnumeric():
                                     vals += f"{w}, "
@@ -83,9 +86,9 @@ class Command(BaseCommand):
                             sql_fld_values = vals[0:-2]
                             sql_body_final = (
                                 f"{sql_hdr} VALUES ({sql_fld_values})"
-                                            )
+                            )
                             cursor.execute(sql_body_final)
                         row_num += 1
         # Making enable foreign keys
-        cursor.execute('PRAGMA foreign_keys = ON;')
-        self.stdout.write(self.style.SUCCESS('Импорт данных завершен!'))
+        cursor.execute("PRAGMA foreign_keys = ON;")
+        self.stdout.write(self.style.SUCCESS("Импорт данных завершен!"))

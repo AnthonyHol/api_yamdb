@@ -4,16 +4,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
-def validate_category(value):
-    pass
-"""
-    if re.search(r"^[a-zA-Z][a-zA-Z0-9-_\.]$", value) is None:
-        raise ValidationError(
-            (f"Не допустимые символы <{value}> в названии Категория!"),
-            params={"value": value},
-        )
-"""
-
 def validate_year(value):
     now = timezone.now().year
     if value > now:

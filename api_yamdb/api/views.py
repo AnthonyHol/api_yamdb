@@ -1,13 +1,6 @@
-from api.permissons import IsAdmin, IsAdminOrReadOnly
-from api.serializers import (CategorySerializer, CommentSerializer,
-                             GetTokenSerializer, ReviewSerializer,
-                             SignUpSerializer, GenreSerializer,
-                             #TitleSerializer,
-                             TitleUserSerializer, TitleAdminSerializer,
-                             UsersSerializer, AdminsSerializer)
-from django.core.exceptions import SuspiciousOperation
 from django.core.mail import send_mail
-from rest_framework import status, viewsets, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.filters import SearchFilter
@@ -17,8 +10,21 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins
+
+from .filters import TitleFilter
+from .permissons import IsAdmin, IsAdminOrReadOnly
+from .serializers import (
+    AdminsSerializer,
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    GetTokenSerializer,
+    ReviewSerializer,
+    SignUpSerializer,
+    TitleAdminSerializer,
+    TitleUserSerializer,
+    UsersSerializer,
+)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -37,10 +43,10 @@ class UsersViewSet(viewsets.ModelViewSet):
     search_fields = ("username",)
 
     @action(
-            methods=["GET", "PATCH"],
-            detail=False,
-            permission_classes=(IsAuthenticated,),
-            url_path="me",
+        methods=["GET", "PATCH"],
+        detail=False,
+        permission_classes=(IsAuthenticated,),
+        url_path="me",
     )
     def get_current_user_info(self, request):
         serializer = AdminsSerializer(request.user)
@@ -131,8 +137,11 @@ class APISignUp(APIView):
 
 
 class CategoryViewSet(
-    mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
-    ):
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """
     ViewSet для работы с категориями.
     """
@@ -145,8 +154,11 @@ class CategoryViewSet(
 
 
 class GenreViewSet(
-    mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
-    ):
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """
     ViewSet для работы с жанрами.
     """
@@ -157,30 +169,7 @@ class GenreViewSet(
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
 
-"""
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    pagination_class = PageNumberPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-
-class GenreViewSet(viewsets.ModelViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = CategorySerializer
-    pagination_class = PageNumberPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-
-class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = [IsAdminOrReadOnly]
-    pagination_class = PageNumberPagination
-
-    def perform_create(self, serializer):
-        serializer.save()
-"""
 class TitleViewSet(viewsets.ModelViewSet):
     """
     ViewSet для работы с произведениями.
@@ -189,8 +178,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ("category__slug", "genre__slug", "name", "year")
     pagination_class = PageNumberPagination
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
@@ -212,13 +201,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title_id = self.kwargs.get("title_id")
         pk = self.kwargs.get("pk")
         if not Title.objects.filter(id=title_id).exists():
-            raise NotFound(
-                    detail="Произведение не найдено",
-                    code=404)
+            raise NotFound(detail="Произведение не найдено", code=404)
         if pk and not Review.objects.filter(id=pk).exists():
-            raise NotFound(
-                    detail="Отзыв не найден",
-                    code=404)
+            raise NotFound(detail="Отзыв не найден", code=404)
         return Review.objects.filter(title_id=title_id)
 
     def perform_create(self, serializer):
@@ -227,64 +212,70 @@ class ReviewViewSet(viewsets.ModelViewSet):
         score = self.request.data.get("score")
         if not Title.objects.filter(id=title_id).exists():
             raise NotFound(detail="Не найдено произведение!", code=404)
-        if Review.objects.filter(title_id=title_id, author=self.request.user).exists():
+        if Review.objects.filter(
+            title_id=title_id, author=self.request.user
+        ).exists():
             raise ParseError(
-                detail="Нельзя добавить больше одного отзыва!",
-                code=400)            
+                detail="Нельзя добавить больше одного отзыва!", code=400
+            )
         serializer.save(
-            title_id=title_id,
-            text=text,
-            score=score,
-            author=self.request.user)
+            title_id=title_id, text=text, score=score, author=self.request.user
+        )
         return Response(status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, pk, title_id):
         if not Title.objects.filter(id=title_id).exists():
-            return Response("Не найдено произведение!",
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                "Не найдено произведение!", status=status.HTTP_404_NOT_FOUND
+            )
         review = Review.objects.filter(title=title_id, id=pk)
         if not review.exists():
-            return Response("Не найден отзыв!",
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                "Не найден отзыв!", status=status.HTTP_404_NOT_FOUND
+            )
         review = review.first()
         cur_user = request.user
         review_author = review.author
         cur_user_group = cur_user.role
         if not request.data.get("text") and not request.data.get("score"):
-            return Response("Не передано ни одно из обязательных полей!",
-                            status=status.HTTP_400_BAD_REQUEST)
-        if cur_user_group == 'user' and cur_user != review_author:
-            return Response("Вы не можете редактировать "
-                            "чужой отзыв!",
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                "Не передано ни одно из обязательных полей!",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if cur_user_group == "user" and cur_user != review_author:
+            return Response(
+                "Вы не можете редактировать " "чужой отзыв!",
+                status=status.HTTP_403_FORBIDDEN,
+            )
         serializer = self.serializer_class(
-                    review,
-                    data=self.request.data,
-                    partial=True)
+            review, data=self.request.data, partial=True
+        )
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk, title_id):
         if not Title.objects.filter(id=title_id).exists():
-            return Response("Не найдено произведение!",
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                "Не найдено произведение!", status=status.HTTP_404_NOT_FOUND
+            )
         review = Review.objects.filter(title=title_id, id=pk)
         if not review.exists():
-            return Response("Отзыв не найден!",
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                "Отзыв не найден!", status=status.HTTP_404_NOT_FOUND
+            )
         cur_user = request.user
         review = review.first()
         review_author = review.author
         cur_user_group = cur_user.role
-        if cur_user_group == 'user' and cur_user != review_author:
-            return Response("Вы не можете удалить "
-                            "чужой отзыв!",
-                            status=status.HTTP_403_FORBIDDEN)
+        if cur_user_group == "user" and cur_user != review_author:
+            return Response(
+                "Вы не можете удалить " "чужой отзыв!",
+                status=status.HTTP_403_FORBIDDEN,
+            )
         else:
             review.delete()
-            return Response("Отзыв удален!",
-                            status=status.HTTP_204_NO_CONTENT)
+            return Response("Отзыв удален!", status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -302,17 +293,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get("review_id")
         comment_id = self.kwargs.get("pk")
         if not Review.objects.filter(id=review_id).exists():
-            raise NotFound(
-                    detail="Не найден отзыв!",
-                    code=404)
+            raise NotFound(detail="Не найден отзыв!", code=404)
         if not Title.objects.filter(id=title_id).exists():
-            raise NotFound(
-                    detail="Не найдено произведение!",
-                    code=404)
+            raise NotFound(detail="Не найдено произведение!", code=404)
         if comment_id and not Comment.objects.filter(id=comment_id).exists():
-            raise NotFound(
-                    detail="Не найден комментарий!",
-                    code=404)
+            raise NotFound(detail="Не найден комментарий!", code=404)
         return Comment.objects.filter(review=review_id)
 
     def perform_create(self, serializer):
@@ -321,15 +306,13 @@ class CommentViewSet(viewsets.ModelViewSet):
         text = self.request.data.get("text")
         if not Title.objects.filter(id=title_id).exists():
             raise NotFound(detail="Не найдено произведение!", code=404)
-        if not Review.objects.filter(title_id=title_id,
-                                        id=review_id).exists():
+        if not Review.objects.filter(title_id=title_id, id=review_id).exists():
             raise NotFound(detail="Не найден отзыв!", code=404)
         serializer.save(
-                review_id=review_id,
-                text=text,
-                author=self.request.user)
+            review_id=review_id, text=text, author=self.request.user
+        )
         return Response(status=status.HTTP_201_CREATED)
-        #else:
+        # else:
         #    raise ParseError(
         #            detail="Отсутствует одно из обязательных полей!",
         #            code=400)
@@ -337,56 +320,54 @@ class CommentViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, pk, title_id, review_id):
         comment = Comment.objects.filter(id=pk, review_id=review_id)
         if not Title.objects.filter(id=title_id).exists():
-            raise NotFound(
-                    detail="Не найдено произведение!",
-                    code=404)
+            raise NotFound(detail="Не найдено произведение!", code=404)
         if not Review.objects.filter(id=review_id).exists():
-            raise NotFound(
-                    detail="Не найден отзыв!",
-                    code=404)
+            raise NotFound(detail="Не найден отзыв!", code=404)
         if not comment.exists():
-            raise NotFound(
-                    detail="Не найден комментарий!",
-                    code=404)
+            raise NotFound(detail="Не найден комментарий!", code=404)
 
         cur_user = request.user
         cur_user_group = cur_user.role
         comment = comment.first()
         comment_author = comment.author
-        if cur_user_group == 'user' and cur_user != comment_author:
-            return Response("Вы не можете редактировать "
-                            "чужой комментарий!",
-                            status=status.HTTP_403_FORBIDDEN)
+        if cur_user_group == "user" and cur_user != comment_author:
+            return Response(
+                "Вы не можете редактировать " "чужой комментарий!",
+                status=status.HTTP_403_FORBIDDEN,
+            )
         serializer = self.serializer_class(
-                    comment,
-                    data=self.request.data,
-                    partial=True)
+            comment, data=self.request.data, partial=True
+        )
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk, title_id, review_id):
         if not Title.objects.filter(id=title_id).exists():
-            return Response("Не найдено произведение!",
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                "Не найдено произведение!", status=status.HTTP_404_NOT_FOUND
+            )
         if not Review.objects.filter(id=review_id, title_id=title_id).exists():
-            return Response("Не найден отзыв!",
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                "Не найден отзыв!", status=status.HTTP_404_NOT_FOUND
+            )
         comment = Comment.objects.filter(id=pk, review_id=review_id)
         if not comment.exists():
-            return Response("Не найден комментарий!",
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                "Не найден комментарий!", status=status.HTTP_404_NOT_FOUND
+            )
         cur_user = request.user
         cur_user_group = cur_user.role
         comment = comment.first()
         comment_author = comment.author
-        if cur_user_group == 'user' and cur_user != comment_author:
-            return Response("Вы не можете удалить "
-                            "чужой комментарий!",
-                            status=status.HTTP_403_FORBIDDEN)
+        if cur_user_group == "user" and cur_user != comment_author:
+            return Response(
+                "Вы не можете удалить " "чужой комментарий!",
+                status=status.HTTP_403_FORBIDDEN,
+            )
         else:
             comment.delete()
-            return Response("Комментарий удален!",
-                            status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                "Комментарий удален!", status=status.HTTP_204_NO_CONTENT
+            )

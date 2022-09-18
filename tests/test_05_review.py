@@ -1,11 +1,7 @@
 import pytest
 
-from .common import (
-    auth_client,
-    create_reviews,
-    create_titles,
-    create_users_api,
-)
+from .common import (auth_client, create_reviews, create_titles,
+                     create_users_api)
 
 
 class Test05ReviewAPI:
@@ -23,9 +19,7 @@ class Test05ReviewAPI:
 
     def create_review(self, client_user, title_id, text, score):
         data = {"text": text, "score": score}
-        response = client_user.post(
-            f"/api/v1/titles/{title_id}/reviews/", data=data
-        )
+        response = client_user.post(f"/api/v1/titles/{title_id}/reviews/", data=data)
         assert response.status_code == 201, (
             "Проверьте, что при POST запросе `/api/v1/titles/{title_id}/reviews/` "
             "с правильными данными возвращает статус 201, api доступен для любого аутентифицированного пользователя"
@@ -61,8 +55,7 @@ class Test05ReviewAPI:
             from reviews.models import Review, Title
         except Exception as e:
             assert False, (
-                "Не удалось импортировать модели из приложения reviews. "
-                f"Ошибка: {e}"
+                "Не удалось импортировать модели из приложения reviews. " f"Ошибка: {e}"
             )
         from django.db.utils import IntegrityError
 
@@ -93,15 +86,11 @@ class Test05ReviewAPI:
             f"статус {code}"
         )
         self.create_review(client_user, titles[0]["id"], "Ну такое", 3)
-        self.create_review(
-            client_moderator, titles[0]["id"], "Под пивко пойдет", 4
-        )
+        self.create_review(client_moderator, titles[0]["id"], "Под пивко пойдет", 4)
 
         self.create_review(admin_client, titles[1]["id"], "Ваще ни о чем", 2)
         self.create_review(client_user, titles[1]["id"], "Нормалдес", 4)
-        response = self.create_review(
-            client_moderator, titles[1]["id"], "Так себе", 3
-        )
+        response = self.create_review(client_moderator, titles[1]["id"], "Так себе", 3)
 
         assert type(response.json().get("id")) == int, (
             "Проверьте, что при POST запросе `/api/v1/titles/{title_id}/reviews/` "
@@ -139,9 +128,7 @@ class Test05ReviewAPI:
             "на уже оставленный отзыв для объекта возвращается статус 400."
         )
 
-        response = admin_client.get(
-            f'/api/v1/titles/{titles[0]["id"]}/reviews/'
-        )
+        response = admin_client.get(f'/api/v1/titles/{titles[0]["id"]}/reviews/')
         assert (
             response.status_code == 200
         ), "Проверьте, что при GET запросе `/api/v1/titles/{title_id}/reviews/` возвращает статус 200"
@@ -321,9 +308,7 @@ class Test05ReviewAPI:
             "Проверьте, что при DELETE запросе `/api/v1/titles/{title_id}/reviews/{review_id}/` "
             "возвращаете статус 204"
         )
-        response = admin_client.get(
-            f'/api/v1/titles/{titles[0]["id"]}/reviews/'
-        )
+        response = admin_client.get(f'/api/v1/titles/{titles[0]["id"]}/reviews/')
         test_data = response.json()["results"]
         assert (
             len(test_data) == len(reviews) - 1
@@ -352,9 +337,7 @@ class Test05ReviewAPI:
     def test_04_reviews_check_permission(self, client, admin_client, admin):
         reviews, titles, user, moderator = create_reviews(admin_client, admin)
         data = {"text": "jdfk", "score": 7}
-        response = client.post(
-            f'/api/v1/titles/{titles[0]["id"]}/reviews/', data=data
-        )
+        response = client.post(f'/api/v1/titles/{titles[0]["id"]}/reviews/', data=data)
         assert response.status_code == 401, (
             "Проверьте, что при POST запросе `/api/v1/titles/{{title_id}}/reviews/` "
             "без токена авторизации возвращается статус 401"

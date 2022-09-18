@@ -1,7 +1,7 @@
 import datetime as dt
 
 from rest_framework import serializers
-from reviews.models import User, Comment, Title, Genre, Review, Category
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class AdminsSerializer(serializers.ModelSerializer):
@@ -48,31 +48,11 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ("name", "slug")
 
-"""
-class TitleSerializer(serializers.ModelSerializer):
-    # category = serializers.SlugRelatedField(
-    #    slug_field="slug", many=True, queryset=Category.objects.all()
-    # )
-    category = serializers.StringRelatedField(read_only=True)
-    genre = serializers.SlugRelatedField(
-        slug_field="slug", many=True, queryset=Genre.objects.all()
-    )
-
-    class Meta:
-        model = Title
-        fields = "__all__"
-
-    def validate_year(self, value):
-        current_year = dt.date.today().year
-        if value > current_year:
-            raise serializers.ValidationError("Год указан неправильно")
-        return value
-"""
 
 class TitleUserSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.IntegerField(read_only=True)
+    score = serializers.IntegerField(read_only=True)
 
     class Meta:
         fields = "__all__"

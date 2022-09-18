@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .validators import validate_category, validate_username, validate_year
+from .validators import validate_username, validate_year
 
 USER = "user"
 ADMIN = "admin"
@@ -80,7 +80,6 @@ class Category(models.Model):
         max_length=50,
         unique=True,
         db_index=True,
-        validators=(validate_category,),
     )
 
     class Meta:
