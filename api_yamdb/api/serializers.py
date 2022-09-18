@@ -34,7 +34,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
 class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("email", "username", "confirmation_code")
+        fields = ("email", "username")
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -48,7 +48,7 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ("name", "slug")
 
-
+"""
 class TitleSerializer(serializers.ModelSerializer):
     # category = serializers.SlugRelatedField(
     #    slug_field="slug", many=True, queryset=Category.objects.all()
@@ -66,6 +66,35 @@ class TitleSerializer(serializers.ModelSerializer):
         current_year = dt.date.today().year
         if value > current_year:
             raise serializers.ValidationError("Год указан неправильно")
+        return value
+"""
+
+class TitleUserSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    rating = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        fields = "__all__"
+        model = Title
+
+
+class TitleAdminSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field="slug"
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field="slug", many=True
+    )
+
+    class Meta:
+        fields = "__all__"
+        model = Title
+
+    def validate_year(self, value):
+        current_year = dt.date.today().year
+        if value > current_year:
+            raise serializers.ValidationError("Год указан неправильно!")
         return value
 
 

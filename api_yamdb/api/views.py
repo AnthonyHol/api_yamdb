@@ -1,7 +1,9 @@
 from api.permissons import IsAdmin, IsAdminOrReadOnly
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GetTokenSerializer, ReviewSerializer,
-                             SignUpSerializer, TitleSerializer,
+                             SignUpSerializer, GenreSerializer,
+                             #TitleSerializer,
+                             TitleUserSerializer, TitleAdminSerializer,
                              UsersSerializer, AdminsSerializer)
 from django.core.exceptions import SuspiciousOperation
 from django.core.mail import send_mail
@@ -15,6 +17,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -126,6 +130,34 @@ class APISignUp(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class CategoryViewSet(
+    mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
+    ):
+    """
+    ViewSet для работы с категориями.
+    """
+
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (SearchFilter,)
+    search_fields = ("name",)
+
+
+class GenreViewSet(
+    mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
+    ):
+    """
+    ViewSet для работы с жанрами.
+    """
+
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (SearchFilter,)
+    search_fields = ("name",)
+
+"""
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -148,6 +180,22 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
+"""
+class TitleViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для работы с произведениями.
+    """
+
+    queryset = Title.objects.all()
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ("category__slug", "genre__slug", "name", "year")
+    pagination_class = PageNumberPagination
+
+    def get_serializer_class(self):
+        if self.action in ("list", "retrieve"):
+            return TitleUserSerializer
+        return TitleAdminSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -178,9 +226,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         text = self.request.data.get("text")
         score = self.request.data.get("score")
         if not Title.objects.filter(id=title_id).exists():
+            raise NotFound(detail="Не найдено произведение!", code=404)
+        if Review.objects.filter(title_id=title_id, author=self.request.user).exists():
             raise ParseError(
-                detail="Не найдено произведение!",
-                code=404)
+                detail="Нельзя добавить больше одного отзыва!",
+                code=400)            
         serializer.save(
             title_id=title_id,
             text=text,
@@ -269,25 +319,20 @@ class CommentViewSet(viewsets.ModelViewSet):
         title_id = self.kwargs.get("title_id")
         review_id = self.kwargs.get("review_id")
         text = self.request.data.get("text")
-        if title_id is not None:
-            if not Title.objects.filter(id=title_id).exists():
-                raise ParseError(
-                    detail="Не найдено произведение!",
-                    code=404)
-            if not Review.objects.filter(title_id=title_id,
-                                         id=review_id).exists():
-                raise ParseError(
-                    detail="Не найден отзыв!",
-                    code=404)
-            serializer.save(
-                    review_id=review_id,
-                    text=text,
-                    author=self.request.user)
-            return Response(status=status.HTTP_201_CREATED)
-        else:
-            raise ParseError(
-                    detail="Отсутствует одно из обязательных полей!",
-                    code=400)
+        if not Title.objects.filter(id=title_id).exists():
+            raise NotFound(detail="Не найдено произведение!", code=404)
+        if not Review.objects.filter(title_id=title_id,
+                                        id=review_id).exists():
+            raise NotFound(detail="Не найден отзыв!", code=404)
+        serializer.save(
+                review_id=review_id,
+                text=text,
+                author=self.request.user)
+        return Response(status=status.HTTP_201_CREATED)
+        #else:
+        #    raise ParseError(
+        #            detail="Отсутствует одно из обязательных полей!",
+        #            code=400)
 
     def partial_update(self, request, pk, title_id, review_id):
         comment = Comment.objects.filter(id=pk, review_id=review_id)
