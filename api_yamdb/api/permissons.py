@@ -6,12 +6,12 @@ class IsAdminOrReadOnly(BasePermission):
     Ограничение прав доступа изменения контента только для админа,
     чтение — для любого пользователя.
     """
-    
+
     def has_permission(self, request, view):
         return (
-            request.method in SAFE_METHODS or
-            request.user.is_authenticated and
-            request.user.is_admin
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
+            and request.user.is_admin
         )
 
 
@@ -43,5 +43,3 @@ class IsAuthorOrModerator(BasePermission):
             or obj.author == request.user
             or request.user.is_moderator
         )
-
-
