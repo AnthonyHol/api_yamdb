@@ -13,18 +13,11 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 from .filters import TitleFilter
 from .permissons import IsAdmin, IsAdminOrReadOnly
-from .serializers import (
-    AdminsSerializer,
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    GetTokenSerializer,
-    ReviewSerializer,
-    SignUpSerializer,
-    TitleAdminSerializer,
-    TitleUserSerializer,
-    UsersSerializer,
-)
+from .serializers import (AdminsSerializer, CategorySerializer,
+                          CommentSerializer, GenreSerializer,
+                          GetTokenSerializer, ReviewSerializer,
+                          SignUpSerializer, TitleAdminSerializer,
+                          TitleUserSerializer, UsersSerializer)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
