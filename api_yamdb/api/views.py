@@ -14,11 +14,18 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 from .filters import TitleFilter
 from .permissons import IsAdmin, IsAdminOrReadOnly, IsAuthorOrModerator
-from .serializers import (AdminsSerializer, CategorySerializer,
-                          CommentSerializer, GenreSerializer,
-                          GetTokenSerializer, ReviewSerializer,
-                          SignUpSerializer, TitleAdminSerializer,
-                          TitleUserSerializer, UsersSerializer)
+from .serializers import (
+    AdminsSerializer,
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    GetTokenSerializer,
+    ReviewSerializer,
+    SignUpSerializer,
+    TitleAdminSerializer,
+    TitleUserSerializer,
+    UsersSerializer,
+)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -164,17 +171,17 @@ class CategoryViewSet(
     ViewSet для работы с категориями.
 
     Получение списка всех категорий: GET /categories/
-    
+
     Добавление новой категории POST /categories/:
-    запрос:
+    Запрос:
         {
-            "name": "string",
-            "slug": "string"
+            "name": название категории(:obj:`string`),
+            "slug": slug категории(:obj:`string`).
         }
-    ответ:
+    Ответ:
         {
-            "name": "string",
-            "slug": "string"
+            "name": название категории(:obj:`string`),
+            "slug": slug категории(:obj:`string`).
         }
 
     Удаление категории: DELETE /categories/{slug}/
@@ -200,15 +207,15 @@ class GenreViewSet(
     Получение списка всех жанров: GET /genres/
 
     Добавление жанра POST /genres/:
-    запрос:
+    Запрос:
     {
-        "name": "string",
-        "slug": "string"
+        "name": название жанра(:obj:`string`),
+        "slug": slug жанра(:obj:`string`).
     }
-    ответ:
+    Ответ:
     {
-        "name": "string",
-        "slug": "string"
+        "name": название жанра(:obj:`string`),
+        "slug": slug жанра(:obj:`string`).
     }
 
     Удаление жанра: DELETE /genres/{slug}/
@@ -231,27 +238,22 @@ class TitleViewSet(viewsets.ModelViewSet):
     Добавление произведения POST /titles/:
     запрос:
     {
-        "name": "string",
-        "year": 0,
-        "description": "string",
-        "genre": [
-        "string"
-        ],
-        "category": "string"
+        "name": название произведения(:obj:`string`),
+        "year": год релиза(:obj:`int`),
+        "description": описание(:obj:`string`),
+        "genre": жанры (:obj:`list[string]`),
+        "category": название категории(:obj:`string`)/
     }
     ответ:
     {
-        "id": 0,
-        "name": "string",
-        "year": 0,
-        "rating": 0,
-        "description": "string",
-        "genre": [
-        {}
-        ],
-        "category": {
-        "name": "string",
-        "slug": "string"
+        "id": id(:obj:`int`),
+        "name": название произведения(:obj:`string`),
+        "year": год релиза(:obj:`int`),
+        "rating": рейтинг(:obj:`float`),
+        "description": описание(:obj:`string`),
+        "genre": жанры (:obj:`list[string]`),
+        "category": название категории(:obj:`string`),
+        "slug": slug произведения(:obj:`string`).
         }
     }
 
@@ -261,7 +263,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     Удаление произведения: DELETE /titles/{titles_id}/
     """
-    
+
     queryset = queryset = Title.objects.annotate(
         rating=Avg("reviews__score")
     ).all()
