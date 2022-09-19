@@ -14,18 +14,11 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 from .filters import TitleFilter
 from .permissons import IsAdmin, IsAdminOrReadOnly, IsAuthorOrModerator
-from .serializers import (
-    AdminsSerializer,
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    GetTokenSerializer,
-    ReviewSerializer,
-    SignUpSerializer,
-    TitleAdminSerializer,
-    TitleUserSerializer,
-    UsersSerializer,
-)
+from .serializers import (AdminsSerializer, CategorySerializer,
+                          CommentSerializer, GenreSerializer,
+                          GetTokenSerializer, ReviewSerializer,
+                          SignUpSerializer, TitleAdminSerializer,
+                          TitleUserSerializer, UsersSerializer)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -169,6 +162,22 @@ class CategoryViewSet(
 ):
     """
     ViewSet для работы с категориями.
+
+    Получение списка всех категорий: GET /categories/
+    
+    Добавление новой категории POST /categories/:
+    запрос:
+        {
+            "name": "string",
+            "slug": "string"
+        }
+    ответ:
+        {
+            "name": "string",
+            "slug": "string"
+        }
+
+    Удаление категории: DELETE /categories/{slug}/
     """
 
     queryset = Category.objects.all()
@@ -187,6 +196,22 @@ class GenreViewSet(
 ):
     """
     ViewSet для работы с жанрами.
+
+    Получение списка всех жанров: GET /genres/
+
+    Добавление жанра POST /genres/:
+    запрос:
+    {
+        "name": "string",
+        "slug": "string"
+    }
+    ответ:
+    {
+        "name": "string",
+        "slug": "string"
+    }
+
+    Удаление жанра: DELETE /genres/{slug}/
     """
 
     queryset = Genre.objects.all()
@@ -200,8 +225,43 @@ class GenreViewSet(
 class TitleViewSet(viewsets.ModelViewSet):
     """
     ViewSet для работы с произведениями.
-    """
 
+    Получение списка всех произведений: GET /titles/
+
+    Добавление произведения POST /titles/:
+    запрос:
+    {
+        "name": "string",
+        "year": 0,
+        "description": "string",
+        "genre": [
+        "string"
+        ],
+        "category": "string"
+    }
+    ответ:
+    {
+        "id": 0,
+        "name": "string",
+        "year": 0,
+        "rating": 0,
+        "description": "string",
+        "genre": [
+        {}
+        ],
+        "category": {
+        "name": "string",
+        "slug": "string"
+        }
+    }
+
+    Получение информации о произведении: GET /titles/{titles_id}/
+
+    Частичное обновление информации о произведении: PATCH /titles/{titles_id}/
+
+    Удаление произведения: DELETE /titles/{titles_id}/
+    """
+    
     queryset = queryset = Title.objects.annotate(
         rating=Avg("reviews__score")
     ).all()
