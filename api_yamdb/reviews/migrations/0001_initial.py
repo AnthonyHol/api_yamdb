@@ -81,15 +81,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "first_name",
-                    models.CharField(
-                        blank=True, max_length=32, verbose_name="Имя"
-                    ),
+                    models.CharField(blank=True, max_length=32, verbose_name="Имя"),
                 ),
                 (
                     "last_name",
-                    models.CharField(
-                        blank=True, max_length=32, verbose_name="Фамилия"
-                    ),
+                    models.CharField(blank=True, max_length=32, verbose_name="Фамилия"),
                 ),
                 ("email", models.EmailField(max_length=32, unique=True)),
                 (
@@ -189,9 +185,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "name",
-                    models.CharField(
-                        max_length=200, verbose_name="Название жанра"
-                    ),
+                    models.CharField(max_length=200, verbose_name="Название жанра"),
                 ),
                 (
                     "slug",
@@ -336,9 +330,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "text",
-                    models.CharField(
-                        max_length=200, verbose_name="Текст комментария"
-                    ),
+                    models.CharField(max_length=200, verbose_name="Текст комментария"),
                 ),
                 (
                     "pub_date",
