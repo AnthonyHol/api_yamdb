@@ -170,6 +170,22 @@ class CategoryViewSet(
 ):
     """
     ViewSet для работы с категориями.
+
+    Получение списка всех категорий: GET /categories/
+
+    Добавление новой категории POST /categories/:
+    Запрос:
+        {
+            "name": название категории(:obj:`string`),
+            "slug": slug категории(:obj:`string`).
+        }
+    Ответ:
+        {
+            "name": название категории(:obj:`string`),
+            "slug": slug категории(:obj:`string`).
+        }
+
+    Удаление категории: DELETE /categories/{slug}/
     """
 
     queryset = Category.objects.all()
@@ -188,6 +204,22 @@ class GenreViewSet(
 ):
     """
     ViewSet для работы с жанрами.
+
+    Получение списка всех жанров: GET /genres/
+
+    Добавление жанра POST /genres/:
+    Запрос:
+    {
+        "name": название жанра(:obj:`string`),
+        "slug": slug жанра(:obj:`string`).
+    }
+    Ответ:
+    {
+        "name": название жанра(:obj:`string`),
+        "slug": slug жанра(:obj:`string`).
+    }
+
+    Удаление жанра: DELETE /genres/{slug}/
     """
 
     queryset = Genre.objects.all()
@@ -201,6 +233,36 @@ class GenreViewSet(
 class TitleViewSet(viewsets.ModelViewSet):
     """
     ViewSet для работы с произведениями.
+
+    Получение списка всех произведений: GET /titles/
+
+    Добавление произведения POST /titles/:
+    запрос:
+    {
+        "name": название произведения(:obj:`string`),
+        "year": год релиза(:obj:`int`),
+        "description": описание(:obj:`string`),
+        "genre": жанры (:obj:`list[string]`),
+        "category": название категории(:obj:`string`)/
+    }
+    ответ:
+    {
+        "id": id(:obj:`int`),
+        "name": название произведения(:obj:`string`),
+        "year": год релиза(:obj:`int`),
+        "rating": рейтинг(:obj:`float`),
+        "description": описание(:obj:`string`),
+        "genre": жанры (:obj:`list[string]`),
+        "category": название категории(:obj:`string`),
+        "slug": slug произведения(:obj:`string`).
+        }
+    }
+
+    Получение информации о произведении: GET /titles/{titles_id}/
+
+    Частичное обновление информации о произведении: PATCH /titles/{titles_id}/
+
+    Удаление произведения: DELETE /titles/{titles_id}/
     """
 
     queryset = queryset = Title.objects.annotate(
