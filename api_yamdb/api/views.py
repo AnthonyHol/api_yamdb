@@ -218,8 +218,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """
-    Вьюсет для объекта 'Отзыв'.
-    Просмотр, создание,  редактирование, удаление.
+    ViewSet для работы с отзывами.
     """
 
     serializer_class = ReviewSerializer
@@ -312,8 +311,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
-    Вьюсет для объекта 'Комментарий'.
-    Просмотр, создание,  редактирование, удаление.
+    ViewSet для работы с комментариями.
     """
 
     serializer_class = CommentSerializer
@@ -344,10 +342,6 @@ class CommentViewSet(viewsets.ModelViewSet):
             review_id=review_id, text=text, author=self.request.user
         )
         return Response(status=status.HTTP_201_CREATED)
-        # else:
-        #    raise ParseError(
-        #            detail="Отсутствует одно из обязательных полей!",
-        #            code=400)
 
     def partial_update(self, request, pk, title_id, review_id):
         comment = Comment.objects.filter(id=pk, review_id=review_id)

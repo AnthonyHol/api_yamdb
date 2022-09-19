@@ -25,8 +25,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         cursor = connection.cursor()
-        # Temporary making disable foreign keys.
-        # It allows insert data in tables.
+        # Временно отключаем внешние ключи.
         cursor.execute("PRAGMA foreign_keys = OFF;")
         files_csv_list = os.listdir(PATH_TO_CSV)
 
@@ -50,13 +49,13 @@ class Command(BaseCommand):
                             )
                             cursor.execute(sql_body_final)
                         row_num += 1
-        # Making enable foreign keys
+        # Включаем внешние ключи.
         cursor.execute('PRAGMA foreign_keys = ON;')
         self.stdout.write(self.style.SUCCESS('Импорт данных завершен!'))
 
     def header_handler(self, row, header_in_query, tbl_t, file_name):
         """
-        Making header's part of query.
+        Создание заголовочной части тела запроса.
         """
 
         if header_in_query == 1:
@@ -77,12 +76,12 @@ class Command(BaseCommand):
 
     def data_handler(self, row, file_name):
         """
-        Making data part of query.
+        Создание основной части тела запроса.
         """
 
         vals = ""
         if len(row) == 1:
-            # data with separator in content
+            # Разделитель в данных
             if row[0][0] == '"' and row[0][-1] == '"':
                 row[0] = row[0][1:-1]
             row = re.split(
