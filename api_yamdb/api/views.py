@@ -30,7 +30,31 @@ from .serializers import (
 
 class UsersViewSet(viewsets.ModelViewSet):
     """
-    ViewSet для работы с пользователями.
+    UsersViewSet для получения
+
+    Запрос (POST, PATCH):
+    {
+        "username": имя пользователя(:obj:`string`),
+        "email": электронная почта пользователя(:obj:`string`).
+    }
+
+    Запрос (GET):
+    {
+        "username": имя пользователя(:obj:`string`).
+    }
+
+    Ответы:
+    {
+        "username": имя пользователя(:obj:`string`),
+        "email": электронная почта пользователя(:obj:`string`),
+        "first_name", "last_name", "bio", "role": необязательные поля(:obj:`string`)
+    }
+
+    Запрос (DEL):
+    {
+        "username": имя пользователя(:obj:`string`).
+    }
+
     """
 
     queryset = User.objects.all()
