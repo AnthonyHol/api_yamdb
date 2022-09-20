@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from api_yamdb.settings import ADMIN_EMAIL
+from api_yamdb.settings import ADMIN_EMAIL, USER
 from reviews.models import Category, Comment, Genre, Review, Title, User
 from django.shortcuts import get_object_or_404
 

@@ -7,10 +7,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .validators import validate_username, validate_year
+from api_yamdb.settings import USER, ADMIN, MODERATOR
 
-USER = "user"
-ADMIN = "admin"
-MODERATOR = "moderator"
 
 ROLE_CHOICES = [(USER, USER), (ADMIN, ADMIN), (MODERATOR, MODERATOR)]
 
