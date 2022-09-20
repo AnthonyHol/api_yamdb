@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from api_yamdb.settings import ADMIN_EMAIL
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title, User, USER
 from django.shortcuts import get_object_or_404
 
 from .filters import TitleFilter
@@ -375,9 +375,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 "Вы не можете удалить чужой отзыв!",
                 status=status.HTTP_403_FORBIDDEN,
             )
-        else:
-            review.delete()
-            return Response("Отзыв удален!", status=status.HTTP_204_NO_CONTENT)
+        review.delete()
+        return Response("Отзыв удален!", status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -477,8 +476,7 @@ class CommentViewSet(viewsets.ModelViewSet):
                 "Вы не можете удалить чужой комментарий!",
                 status=status.HTTP_403_FORBIDDEN,
             )
-        else:
-            comment.delete()
-            return Response(
-                "Комментарий удален!", status=status.HTTP_204_NO_CONTENT
-            )
+        comment.delete()
+        return Response(
+            "Комментарий удален!", status=status.HTTP_204_NO_CONTENT
+        )
