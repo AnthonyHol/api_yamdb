@@ -12,15 +12,24 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import USER, Category, Comment, Genre, Review, Title, User
+from api_yamdb.settings import ADMIN_EMAIL
+from reviews.models import Category, Comment, Genre, Review, Title, User
+from django.shortcuts import get_object_or_404
 
 from .filters import TitleFilter
 from .permissons import IsAdmin, IsAdminOrReadOnly, IsAuthorOrModerator
-from .serializers import (AdminsSerializer, CategorySerializer,
-                          CommentSerializer, GenreSerializer,
-                          GetTokenSerializer, ReviewSerializer,
-                          SignUpSerializer, TitleAdminSerializer,
-                          TitleUserSerializer, UsersSerializer)
+from .serializers import (
+    AdminsSerializer,
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    GetTokenSerializer,
+    ReviewSerializer,
+    SignUpSerializer,
+    TitleAdminSerializer,
+    TitleUserSerializer,
+    UsersSerializer,
+)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -44,6 +53,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         "email": электронная почта пользователя(:obj:`string`),
         "first_name", "last_name": необязательные поля(:obj:`string`),
         "bio", "role": необязательные поля(:obj:`string`).
+
     }
 
     Запрос (DEL):
@@ -64,7 +74,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     search_fields = ("username",)
 
     @action(
-        methods=["GET", "PATCH"],
+        methods=("GET", "PATCH"),
         detail=False,
         permission_classes=(IsAuthenticated,),
         url_path="me",
@@ -109,18 +119,15 @@ class APIGetToken(APIView):
         serializer = GetTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        try:
-            user = User.objects.get(username=data["username"])
-        except User.DoesNotExist:
-            return Response(
-                {"username": "Такого пользователя не существует!"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+
+        user = get_object_or_404(User, username=data["username"])
+
         if data.get("confirmation_code") == user.confirmation_code:
             token = RefreshToken.for_user(user).access_token
             return Response(
                 {"token": str(token)}, status=status.HTTP_201_CREATED
             )
+
         return Response(
             {"confirmation_code": "Неверный код подтверждения!"},
             status=status.HTTP_400_BAD_REQUEST,
@@ -151,9 +158,10 @@ class APISignUp(APIView):
                 f"Здравствуйте, {user.username}!\n"
                 f"Код доступа к API: {user.confirmation_code}"
             ),
-            "support_api@mail.com",
+            ADMIN_EMAIL,
             [user.email],
         )
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -287,8 +295,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title_id = self.kwargs.get("title_id")
         pk = self.kwargs.get("pk")
         if not Title.objects.filter(id=title_id).exists():
-            raise NotFound(detail="Произведение не найдено", 
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Произведение не найдено", code=HTTPStatus.NOT_FOUND
+            )
         if pk and not Review.objects.filter(id=pk).exists():
             raise NotFound(detail="Отзыв не найден", code=HTTPStatus.NOT_FOUND)
         return Review.objects.filter(title_id=title_id)
@@ -298,14 +307,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
         text = self.request.data.get("text")
         score = self.request.data.get("score")
         if not Title.objects.filter(id=title_id).exists():
-            raise NotFound(detail="Не найдено произведение!!!",
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Не найдено произведение!!!", code=HTTPStatus.NOT_FOUND
+            )
         if Review.objects.filter(
             title_id=title_id, author=self.request.user
         ).exists():
             raise ParseError(
                 detail="Нельзя добавить больше одного отзыва!",
-                code=HTTPStatus.BAD_REQUEST
+                code=HTTPStatus.BAD_REQUEST,
             )
         serializer.save(
             title_id=title_id,
@@ -386,11 +396,13 @@ class CommentViewSet(viewsets.ModelViewSet):
         if not Review.objects.filter(id=review_id).exists():
             raise NotFound(detail="Не найден отзыв!", code=404)
         if not Title.objects.filter(id=title_id).exists():
-            raise NotFound(detail="Не найдено произведение!",
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Не найдено произведение!", code=HTTPStatus.NOT_FOUND
+            )
         if comment_id and not Comment.objects.filter(id=comment_id).exists():
-            raise NotFound(detail="Не найден комментарий!",
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Не найден комментарий!", code=HTTPStatus.NOT_FOUND
+            )
         return Comment.objects.filter(review=review_id)
 
     def perform_create(self, serializer):
@@ -398,11 +410,13 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get("review_id")
         text = self.request.data.get("text")
         if not Title.objects.filter(id=title_id).exists():
-            raise NotFound(detail="Не найдено произведение!",
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Не найдено произведение!", code=HTTPStatus.NOT_FOUND
+            )
         if not Review.objects.filter(title_id=title_id, id=review_id).exists():
-            raise NotFound(detail="Не найден отзыв!",
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Не найден отзыв!", code=HTTPStatus.NOT_FOUND
+            )
         serializer.save(
             review_id=review_id, text=text, author=self.request.user
         )
@@ -411,14 +425,17 @@ class CommentViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, pk, title_id, review_id):
         comment = Comment.objects.filter(id=pk, review_id=review_id)
         if not Title.objects.filter(id=title_id).exists():
-            raise NotFound(detail="Не найдено произведение!",
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Не найдено произведение!", code=HTTPStatus.NOT_FOUND
+            )
         if not Review.objects.filter(id=review_id).exists():
-            raise NotFound(detail="Не найден отзыв!",
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Не найден отзыв!", code=HTTPStatus.NOT_FOUND
+            )
         if not comment.exists():
-            raise NotFound(detail="Не найден комментарий!",
-                           code=HTTPStatus.NOT_FOUND)
+            raise NotFound(
+                detail="Не найден комментарий!", code=HTTPStatus.NOT_FOUND
+            )
 
         cur_user = request.user
         cur_user_group = cur_user.role
