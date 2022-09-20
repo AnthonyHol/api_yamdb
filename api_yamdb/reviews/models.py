@@ -12,22 +12,19 @@ USER = "user"
 ADMIN = "admin"
 MODERATOR = "moderator"
 
-ROLE_CHOICES = [(USER, "user"), (ADMIN, "admin"), (MODERATOR, "moderator")]
+ROLE_CHOICES = [(USER, USER), (ADMIN, ADMIN), (MODERATOR, MODERATOR)]
 
 
 class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        blank=False,
         null=False,
         validators=(validate_username,),
     )
     first_name = models.CharField("Имя", max_length=150, blank=True)
     last_name = models.CharField("Фамилия", max_length=150, blank=True)
-    email = models.EmailField(
-        max_length=254, unique=True, blank=False, null=False
-    )
+    email = models.EmailField(max_length=254, unique=True, null=False)
     role = models.CharField(
         "Роль", max_length=10, choices=ROLE_CHOICES, default=USER, blank=True
     )
@@ -39,7 +36,6 @@ class User(AbstractUser):
         "Код подтверждения",
         max_length=255,
         null=True,
-        blank=False,
     )
 
     @property

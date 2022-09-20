@@ -10,7 +10,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from api_yamdb.settings import ADMIN_EMAIL
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from django.shortcuts import get_object_or_404
 
 from .filters import TitleFilter
 from .permissons import IsAdmin, IsAdminOrReadOnly, IsAuthorOrModerator
@@ -70,7 +72,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     search_fields = ("username",)
 
     @action(
-        methods=["GET", "PATCH"],
+        methods=("GET", "PATCH"),
         detail=False,
         permission_classes=(IsAuthenticated,),
         url_path="me",
@@ -115,18 +117,15 @@ class APIGetToken(APIView):
         serializer = GetTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        try:
-            user = User.objects.get(username=data["username"])
-        except User.DoesNotExist:
-            return Response(
-                {"username": "Такого пользователя не существует!"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+
+        user = get_object_or_404(User, username=data["username"])
+
         if data.get("confirmation_code") == user.confirmation_code:
             token = RefreshToken.for_user(user).access_token
             return Response(
                 {"token": str(token)}, status=status.HTTP_201_CREATED
             )
+
         return Response(
             {"confirmation_code": "Неверный код подтверждения!"},
             status=status.HTTP_400_BAD_REQUEST,
@@ -157,9 +156,10 @@ class APISignUp(APIView):
                 f"Здравствуйте, {user.username}!\n"
                 f"Код доступа к API: {user.confirmation_code}"
             ),
-            "support_api@mail.com",
+            ADMIN_EMAIL,
             [user.email],
         )
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -365,7 +365,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         cur_user_group = cur_user.role
         if cur_user_group == "user" and cur_user != review_author:
             return Response(
-                "Вы не можете удалить " "чужой отзыв!",
+                "Вы не можете удалить чужой отзыв!",
                 status=status.HTTP_403_FORBIDDEN,
             )
         else:
@@ -453,7 +453,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         comment_author = comment.author
         if cur_user_group == "user" and cur_user != comment_author:
             return Response(
-                "Вы не можете удалить " "чужой комментарий!",
+                "Вы не можете удалить чужой комментарий!",
                 status=status.HTTP_403_FORBIDDEN,
             )
         else:
