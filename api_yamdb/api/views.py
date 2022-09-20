@@ -47,7 +47,8 @@ class UsersViewSet(viewsets.ModelViewSet):
     {
         "username": имя пользователя(:obj:`string`),
         "email": электронная почта пользователя(:obj:`string`),
-        "first_name", "last_name", "bio", "role": необязательные поля(:obj:`string`)
+        "first_name", "last_name": необязательные поля(:obj:`string`),
+        "bio", "role": необязательные поля(:obj:`string`).
     }
 
     Запрос (DEL):
