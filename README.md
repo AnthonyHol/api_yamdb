@@ -80,4 +80,4 @@ GET /api/v1/users/ — Получение списка всех пользова
 Авторы: 
 - [Холкин Антон (Python-разработчик + Тимлид)](https://github.com/AnthonyHol/ "Холкин Антон (Python-разработчик + Тимлид)")
 - [Леонид Клет (Python-разработчик)](https://github.com/lik-me "Леонид Клет(Python-разработчик)")
-- [Денис М (Python-разработчик)](https://github.com/Eltimccc "Денис М (Python-разработчик)")
+- [Денис М. (Python-разработчик)](https://github.com/Eltimccc "Денис М (Python-разработчик)")
