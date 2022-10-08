@@ -56,4 +56,7 @@ python yatube/manage.py runserver
 
 Переход на документацию проекта `http://127.0.0.1:8000/redoc/`
 
-Автор: [Холкин Антон](https://github.com/AnthonyHol/ "Холкин Антон")
+Авторы: 
+- [Холкин Антон (Python-разработчик + Тимлид)](https://github.com/AnthonyHol/ "Холкин Антон (Python-разработчик + Тимлид)")
+- [Леонид Клет(Python-разработчик)](https://github.com/lik-me "Леонид Клет(Python-разработчик)")
+- [Денис М (Python-разработчик)](https://github.com/Eltimccc "Денис М (Python-разработчик)")
