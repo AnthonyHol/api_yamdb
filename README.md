@@ -1,43 +1,59 @@
-### Как запустить проект:
+# Социальная сеть для публикации личных дневников
+## Спринт 10 — api_yamdb
 
-Клонировать репозиторий и перейти в него в командной строке:
+### Описание
+Проект YaMDb собирает отзывы (Review) пользователей на произведения (Title). Произведения делятся на категории: «Книги», «Фильмы», «Музыка». Список категорий (Category) может быть расширен.
 
 ```
 git clone https://github.com/AnthonyHol/api_yamdb.git
 ```
 
-```
-cd api_yamdb
-```
-
-Cоздать и активировать виртуальное окружение:
+Переходим в папку с проектом и устанавливаем виртуальное окружение:
 
 ```
-python3 -m venv env
+python -m venv venv
 ```
 
+Активируем виртуальное окружение:
 ```
-source env/bin/activate
-```
-
-```
-python3 -m pip install --upgrade pip
+source venv/Scripts/activate
 ```
 
-Установить зависимости из файла requirements.txt:
-
+Устанавливаем зависимости:
+```
+python -m pip install --upgrade pip
+```
 ```
 pip install -r requirements.txt
 ```
 
-Выполнить миграции:
+Выполняем миграции:
+```
+python yatube/manage.py makemigrations
+```
+```
+python yatube/manage.py migrate
+```
 
+Создаем суперпользователя:
 ```
-python3 manage.py migrate
+python yatube/manage.py createsuperuser
 ```
 
-Запустить проект:
+В папку, где находится файл settings.py, добавляем файл .env, куда прописываем секретный ключ следующим образом:
+```
+SECRET_KEY='Секретный ключ'
+```
 
+Запускаем проект:
 ```
-python3 manage.py runserver
+python yatube/manage.py runserver
 ```
+
+Проект будет доступен по адресу `http://127.0.0.1:8000/`
+
+Переход на админ-панель доступен по адресу `http://127.0.0.1:8000/admin/`
+
+Переход на документацию проекта `http://127.0.0.1:8000/redoc/`
+
+Автор: [Холкин Антон](https://github.com/AnthonyHol/ "Холкин Антон")
