@@ -10,6 +10,8 @@
 - Django Rest Framework 3.12.4
 - SimpleJWT 4.8.0
 
+### Запуск проекта в dev-режиме
+Клонируем проект:
 ```
 git clone https://github.com/AnthonyHol/api_yamdb.git
 ```
